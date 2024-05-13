@@ -1,0 +1,25 @@
+%YAML:1.0
+---
+NOIR_camera_matrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [518.9195740674662, 0, 320.1026540670163, 0, 518.5081269435317, 243.2790672180749, 0, 0, 1]
+
+NOIR_distortion_coefficients: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [0.1915101121545636, -0.5095826906034406, 0.0009763870143416878, 0.003755940244580556, 0.6579037599023364]
+
+Visible_camera_matrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [543.7675588809527, 0, 338.9642865181752, 0, 546.5569950843243, 251.2366014083449, 0, 0, 1]
+
+Visible_distortion_coefficients: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [0.2249142298967107, -0.7123203204239652, 0.006148106459160329, 0.005922196296597053, 0.4575903415792326]

@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Onboard_VS_Streaming_RPI/Send_Picture_RPI/send_picture_RPI.cpp
+opencv2/opencv.hpp
+-
+iostream
+-
+fstream
+-
+cstring
+-
+arpa/inet.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+unistd.h
+-
+chrono
+-
+cstdint
+-
+inttypes.h
+-
+

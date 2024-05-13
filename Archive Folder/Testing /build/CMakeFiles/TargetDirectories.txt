@@ -1,0 +1,3 @@
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Testing /build/CMakeFiles/rebuild_cache.dir
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Testing /build/CMakeFiles/libcamera_example.dir
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Testing /build/CMakeFiles/edit_cache.dir

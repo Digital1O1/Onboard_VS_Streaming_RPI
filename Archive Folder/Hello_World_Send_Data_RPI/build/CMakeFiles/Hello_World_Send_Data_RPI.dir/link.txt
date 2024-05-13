@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/Hello_World_Send_Data_RPI.dir/main.cpp.o  -o Hello_World_Send_Data_RPI  -lpthread 

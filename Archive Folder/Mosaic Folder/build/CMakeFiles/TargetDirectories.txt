@@ -1,0 +1,3 @@
+/home/pi/Onboard_VS_Streaming_RPI/Mosaic Folder/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Onboard_VS_Streaming_RPI/Mosaic Folder/build/CMakeFiles/testing_ground.dir
+/home/pi/Onboard_VS_Streaming_RPI/Mosaic Folder/build/CMakeFiles/edit_cache.dir

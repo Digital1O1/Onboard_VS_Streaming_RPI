@@ -1,0 +1,32 @@
+#include <opencv2/opencv.hpp>
+
+int main() {
+    cv::VideoCapture cap(0);
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Could not open camera." << std::endl;
+        return 1;
+    }
+
+    cv::Mat cam0_frame;
+    cap >> cam0_frame;
+
+    if (cam0_frame.empty()) {
+        std::cerr << "Error: Frame is empty." << std::endl;
+        return 1;
+    }
+
+    int rawImageWidth = cam0_frame.cols;
+    int rawImageHeight = cam0_frame.rows;
+
+    cv::Mat rawImageMat(rawImageHeight, rawImageWidth, CV_8UC1);
+    
+    // Convert the input image to single-channel grayscale
+    cv::cvtColor(cam0_frame, rawImageMat, cv::COLOR_BGR2GRAY);
+
+    cv::Mat demosaicedFrame;
+    
+    // Apply the demosaicing algorithm
+    cv::cvtColor(rawImageMat, demosaicedFrame, cv::COLOR_BayerRG2BGR);
+
+    return 0;
+}

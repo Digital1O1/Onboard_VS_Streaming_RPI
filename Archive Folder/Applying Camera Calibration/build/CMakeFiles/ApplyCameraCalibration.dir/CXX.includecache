@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Onboard_VS_Streaming_RPI/Applying Camera Calibration/main.cpp
+opencv2/opencv.hpp
+-
+iostream
+-
+

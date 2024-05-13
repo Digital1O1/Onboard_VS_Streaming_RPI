@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Zoom Homography/main.cpp
+fstream
+-
+opencv2/opencv.hpp
+-
+vector
+-
+

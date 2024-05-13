@@ -1,0 +1,4 @@
+/home/pi/Onboard_VS_Streaming_RPI/Stereo Calibration and Rectification/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Onboard_VS_Streaming_RPI/Stereo Calibration and Rectification/build/CMakeFiles/edit_cache.dir
+/home/pi/Onboard_VS_Streaming_RPI/Stereo Calibration and Rectification/build/CMakeFiles/StereoCalibration.dir
+/home/pi/Onboard_VS_Streaming_RPI/Stereo Calibration and Rectification/build/CMakeFiles/TakePicture.dir
