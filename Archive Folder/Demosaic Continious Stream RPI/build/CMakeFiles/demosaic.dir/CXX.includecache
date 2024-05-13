@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Onboard_VS_Streaming_RPI/Demosaic Continious Stream/demosaic.cpp
+opencv2/opencv.hpp
+-
+iostream
+-
+arpa/inet.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+unistd.h
+-
+cstdint
+-
+inttypes.h
+-
+chrono
+-
+

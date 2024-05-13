@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Desktop/Onboard_Vs_Streaming_Project/Picture Transmission/Hello_World_Send_Data_RPI/main.cpp
+iostream
+-
+cstring
+-
+unistd.h
+-
+arpa/inet.h
+-
+sys/socket.h
+-
+

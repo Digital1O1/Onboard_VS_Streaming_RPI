@@ -1,0 +1,3 @@
+/home/pi/Onboard_VS_Streaming_RPI/Capture Picture/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Onboard_VS_Streaming_RPI/Capture Picture/build/CMakeFiles/TakePicture.dir
+/home/pi/Onboard_VS_Streaming_RPI/Capture Picture/build/CMakeFiles/edit_cache.dir

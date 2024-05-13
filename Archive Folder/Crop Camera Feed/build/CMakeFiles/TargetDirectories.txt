@@ -1,0 +1,3 @@
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Crop Camera Feed/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Crop Camera Feed/build/CMakeFiles/CropCameraFeed.dir
+/home/pi/Desktop/Onboard_VS_Streaming_RPI/Crop Camera Feed/build/CMakeFiles/edit_cache.dir

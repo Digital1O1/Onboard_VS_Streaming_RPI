@@ -1,0 +1,3 @@
+/home/pi/Onboard_VS_Streaming_RPI/Demosaic Continious Stream/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Onboard_VS_Streaming_RPI/Demosaic Continious Stream/build/CMakeFiles/demosaic.dir
+/home/pi/Onboard_VS_Streaming_RPI/Demosaic Continious Stream/build/CMakeFiles/edit_cache.dir
