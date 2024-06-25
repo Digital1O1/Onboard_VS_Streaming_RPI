@@ -32,6 +32,7 @@ int main()
         {
             std::cerr << "IMAGE NOT CAPTURED " << std::endl;
         }
+        cv::flip(irFrames, irFrames, 0);
 
         cv::hconcat(irFrames, visibleFrames, combinedFrames);
 
