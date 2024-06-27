@@ -1,4 +1,20 @@
-# GStreamer Pipelines Currently Being Used
+# GStreamer Pipelines That are being TESTED So Far
+## RPI 
+```bash
+pkill raspivid
+pkill gst-launch-1.0
+export DISPLAY=:0
+gst-launch-1.0 -vvvvv v4l2src device=/dev/video0 ! video/x-raw,width=1920,height=1080,framerate=30/1,format=I420,colorimetry=bt601,interlace-mode=progressive ! omxh264enc ! video/x-h264,profile=baseline ! h264parse ! rtph264pay config-interval=-1 ! udpsink host=172.17.141.30 port=5001 &
+gst-launch-1.0 -vvvvv v4l2src device=/dev/video1 ! video/x-raw,width=1920,height=1080,framerate=30/1,format=I420,colorimetry=bt601,interlace-mode=progressive ! omxh264enc ! video/x-h264,profile=baseline ! h264parse ! rtph264pay config-interval=-1 ! udpsink host=172.17.141.30 port=5002
+```
+## Linux Laptop
+```bash
+gst-launch-1.0 udpsrc address=172.17.141.30 port=5001 caps=application/x-rtp ! queue ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink &
+gst-launch-1.0 udpsrc address=172.17.141.30 port=5002 caps=application/x-rtp ! queue ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink
+```
+
+
+# GStreamer Pipelines That AREN'T Being Used
 
 ## Single pipeline 
 
