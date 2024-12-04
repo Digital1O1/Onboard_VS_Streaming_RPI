@@ -1,51 +1,75 @@
-/*
- * Sender.cpp: Sender for OpenCV_GStreamer example
- *
- * Copyright (C) 2019 Simon D. Levy
- *
- * MIT License
- */
-
-#include "pch.h"
-
 #include <opencv2/opencv.hpp>
-using namespace cv;
-
 #include <iostream>
-using namespace std;
 
 int main()
 {
-    VideoCapture cap(0);
-
+    cv::VideoCapture cap(0);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    // Check if the camera is opened successfully
     if (!cap.isOpened())
     {
-        cerr << "VideoCapture not opened" << endl;
-        exit(-1);
+        std::cerr << "Error: Unable to access the camera" << std::endl;
+        return -1;
     }
+    // Place Linux Laptop IP address here
+    std::string sendToLinuxLaptopPipeline =
+        "appsrc ! videoconvert ! v4l2h264enc ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.140.56 port=5000";
 
-    VideoWriter writer(
-        "appsrc ! videoconvert ! video/x-raw,format=YUY2,width=640,height=480,framerate=30/1 ! jpegenc ! rtpjpegpay ! udpsink host=127.0.0.1 port=5000",
-        0,  // fourcc
-        30, // fps
-        Size(640, 480),
-        true); // isColor
+    // TROUBLESHOOT THIS
+    std::string recieveFromLinuxLaptopPipeline =
+        "udpsrc address=172.17.141.124 port=5001 caps=\"application/x-rtp, encoding-name=H264, payload=96\" ! "
+        "rtph264depay ! h264parse ! queue ! v4l2h264dec ! videoconvert ! appsink sync=false";
+
+    // std::string recieveFromLinuxLaptopPipeline =
+    //     "udpsrc address=172.17.140.56 port=5001 caps=\"application/x-rtp\" ! "
+    //     "rtph264depay ! h264parse ! queue ! v4l2h264dec ! videoconvert ! appsink sync=false";
+
+    cv::VideoWriter writer(
+        sendToLinuxLaptopPipeline,
+        0,
+        30,
+        cv::Size(640, 480),
+        true);
+
+    cv::VideoCapture receiver(
+        recieveFromLinuxLaptopPipeline,
+        cv::CAP_GSTREAMER);
 
     if (!writer.isOpened())
     {
-        cerr << "VideoWriter not opened" << endl;
-        exit(-1);
+        std::cerr << "Error: Unable to open the GStreamer pipeline" << std::endl;
+        return -1;
     }
+
+    cv::Mat rawFrameRPI, linuxFrame;
 
     while (true)
     {
+        cap >> rawFrameRPI;
 
-        Mat frame;
+        if (rawFrameRPI.empty())
+        {
+            std::cerr << "Error: Unable to capture a frame" << std::endl;
+            break;
+        }
 
-        cap.read(frame);
+        // Display the frame in the window
+        cv::imshow("Video Feed From RPI", rawFrameRPI);
+        writer.write(rawFrameRPI);
 
-        writer.write(frame);
+        // receiver.read(linuxFrame);
+        // if (!linuxFrame.empty())
+        // {
+        //     cv::imshow("Video Feed From Linux Laptop", linuxFrame);
+        // }
+
+        if (cv::waitKey(1) == 'q')
+            break;
     }
+
+    cap.release();
+    cv::destroyAllWindows();
 
     return 0;
 }
