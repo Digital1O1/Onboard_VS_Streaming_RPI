@@ -14,20 +14,15 @@ int main()
     }
     // Place Linux Laptop IP address here
     std::string sendToLinuxLaptopPipeline =
-        "appsrc ! videoconvert ! v4l2h264enc ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.140.56 port=5000";
+        "appsrc ! videoconvert ! v4l2h264enc ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.140.56 port=5001";
 
-    // TROUBLESHOOT THIS
     std::string recieveFromLinuxLaptopPipeline =
-        "udpsrc address=172.17.141.124 port=5001 caps=\"application/x-rtp, encoding-name=H264, payload=96\" ! "
+        "udpsrc address=172.17.141.124 port=5002 caps=\"application/x-rtp, encoding-name=H264, payload=96\" ! "
         "rtph264depay ! h264parse ! queue ! v4l2h264dec ! videoconvert ! appsink sync=false";
 
-    // std::string recieveFromLinuxLaptopPipeline =
-    //     "udpsrc address=172.17.140.56 port=5001 caps=\"application/x-rtp\" ! "
-    //     "rtph264depay ! h264parse ! queue ! v4l2h264dec ! videoconvert ! appsink sync=false";
-
-    cv::VideoWriter writer(
+    cv::VideoWriter sendToLinuxLaptop(
         sendToLinuxLaptopPipeline,
-        0,
+        cv::VideoWriter::fourcc('H', '2', '6', '4'),
         30,
         cv::Size(640, 480),
         true);
@@ -36,7 +31,7 @@ int main()
         recieveFromLinuxLaptopPipeline,
         cv::CAP_GSTREAMER);
 
-    if (!writer.isOpened())
+    if (!sendToLinuxLaptop.isOpened())
     {
         std::cerr << "Error: Unable to open the GStreamer pipeline" << std::endl;
         return -1;
@@ -55,15 +50,18 @@ int main()
         }
 
         // Display the frame in the window
+        // cv::imshow("Video Feed From RPI", rawFrameRPI);
+        sendToLinuxLaptop.write(rawFrameRPI);
+
+        receiver.read(linuxFrame);
+        if (!linuxFrame.empty())
+        {
+            std::cerr << "Error: Received empty frame" << std::endl;
+            continue; // Skip to the next loop iteration
+        }
         cv::imshow("Video Feed From RPI", rawFrameRPI);
-        writer.write(rawFrameRPI);
 
-        // receiver.read(linuxFrame);
-        // if (!linuxFrame.empty())
-        // {
-        //     cv::imshow("Video Feed From Linux Laptop", linuxFrame);
-        // }
-
+        cv::imshow("Video Feed From Linux Laptop", linuxFrame);
         if (cv::waitKey(1) == 'q')
             break;
     }
