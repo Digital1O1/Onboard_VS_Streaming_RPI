@@ -1,3 +1,5 @@
+#!/bin/bash
+
 pkill raspivid
 pkill gst-launch-1.0
 
