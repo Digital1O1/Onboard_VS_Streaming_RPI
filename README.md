@@ -52,7 +52,7 @@ gst-launch-1.0 -v udpsrc address=172.17.140.174 port=5003 caps=application/x-rtp
 rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false
 ```
 
-## Dual pipeline
+## Dual pipeline Buster
 
 ```bash
 #!/bin/bash
@@ -88,6 +88,10 @@ rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false &
 # visibleCameraPipeline
 gst-launch-1.0 -v udpsrc address=172.17.140.174 port=5003 caps=application/x-rtp ! \
 rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false
+
+---
+
+
 ```
 ## Bookworm GStreamer Pipelines
 ```bash
