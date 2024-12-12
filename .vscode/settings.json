@@ -69,7 +69,13 @@
     "cfenv": "cpp",
     "typeindex": "cpp",
     "valarray": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "bit": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "numbers": "cpp"
   },
   "cmake.sourceDirectory": "/home/pi/Onboard_VS_Streaming_RPI/Camera Calibration"
 }

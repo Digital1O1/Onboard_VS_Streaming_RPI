@@ -1,0 +1,113 @@
+#!/bin/bash
+# IMPORTANT NOTE: RUN STREAMING PROGRAM ON LINUX LAPTOP FIRST OR WINDOW NAMING WILL BE INCORRECT
+
+# Function to clean up background processes
+cleanup() {
+    echo "Cleaning up..."
+    kill "$CAMERA1_PID" "$CAMERA2_PID" "$PROCESSED_PID" "$PROFUSION_PID" &> /dev/null
+    rm -f "$COUNTDOWN_FILE"
+    exit 0
+}
+
+# Trap SIGINT (Ctrl + C) and call cleanup
+trap cleanup SIGINT
+
+# Export display for graphical applications
+export DISPLAY=:0
+
+# Check dependencies
+for cmd in xdotool gst-launch-1.0; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "Error: $cmd not found. Please install it."
+        exit 1
+    fi
+done
+
+# Host and port configuration
+HOST_LAPTOP="172.17.140.56"
+PORT_CAM1=5000
+PORT_CAM2=5001
+HOST_RECEIVER="172.17.141.124"
+PORT_PROCESSED=5003
+PORT_PROFUSION=5004
+
+# Countdown signal file
+COUNTDOWN_FILE="/tmp/countdown_signal"
+
+# Function to rename windows using xdotool
+rename_window() {
+    local pid="$1"
+    local new_title="$2"
+
+    echo "Waiting for window with PID $pid to appear..."
+    local retries=0
+
+    while true; do
+        WINDOW_ID=$(xdotool search --pid "$pid" | head -n 1)
+        if [ -n "$WINDOW_ID" ]; then
+            xdotool set_window --name "$new_title" "$WINDOW_ID"
+            echo "Renamed window with PID $pid to '$new_title'."
+            break
+        fi
+        if [ $((retries++)) -gt 20 ]; then
+            echo "Failed to rename window for PID $pid after multiple attempts."
+            break
+        fi
+        sleep 0.5
+    done
+}
+
+# Start the first camera stream
+gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! \
+    capsfilter caps=video/x-raw,width=640,height=480,format=NV12 ! v4l2convert ! queue ! \
+    v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! \
+    'video/x-h264,level=(string)4.2,profile=(string)baseline' ! h264parse ! rtph264pay ! \
+    queue ! udpsink host=$HOST_LAPTOP port=$PORT_CAM1 &
+
+CAMERA1_PID=$!
+echo "The PID of Camera 1 is: $CAMERA1_PID"
+
+# Start the second camera stream
+gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! \
+    capsfilter caps=video/x-raw,width=640,height=480,format=NV12 ! v4l2convert ! queue ! \
+    v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! \
+    'video/x-h264,level=(string)4.2,profile=(string)baseline' ! h264parse ! rtph264pay ! \
+    queue ! udpsink host=$HOST_LAPTOP port=$PORT_CAM2 &
+
+CAMERA2_PID=$!
+echo "The PID of Camera 2 is: $CAMERA2_PID"
+
+# Start receiving and displaying processed frames
+gst-launch-1.0 udpsrc address=$HOST_RECEIVER port=$PORT_PROCESSED caps=application/x-rtp ! \
+    rtph264depay ! h264parse ! queue ! v4l2h264dec ! \
+    xvimagesink sync=false &
+
+PROCESSED_PID=$!
+echo "The PID of PROCESSED_FRAMES is: $PROCESSED_PID"
+
+# Start receiving and displaying profusion frames
+gst-launch-1.0 udpsrc address=$HOST_RECEIVER port=$PORT_PROFUSION caps=application/x-rtp ! \
+    rtph264depay ! h264parse ! queue ! v4l2h264dec ! \
+    xvimagesink sync=false &
+
+PROFUSION_PID=$!
+echo "The PID of PROFUSION_FRAMES is: $PROFUSION_PID"
+
+# Rename windows based on their PIDs
+rename_window "$PROCESSED_PID" "CVG_PROCESSED_FRAMES"
+rename_window "$PROFUSION_PID" "PROFUSION_FRAMES"
+
+# Monitor for SSH command signal
+while true; do
+    # Check for an incoming SSH command to kill the PROFUSION_PID process
+    ssh "$HOST_LAPTOP" "kill_profusion_signal" &> /dev/null
+    if [ $? -eq 0 ]; then
+        echo "Signal received to kill PROFUSION_FRAMES..."
+        kill "$PROFUSION_PID"
+        break
+    fi
+    sleep 1
+done
+
+# Wait for any background processes to finish
+wait

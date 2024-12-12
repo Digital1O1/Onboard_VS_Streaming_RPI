@@ -112,6 +112,7 @@ int main()
 {
     // Path to the YAML file
     std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/Archive Folder/Homography/build/homography_matrix.yaml";
+
     std::cout << "Opening file: " << filename << std::endl;
 
     // Open the file using FileStorage
@@ -126,7 +127,7 @@ int main()
     cv::Mat infraredToVisibleHomography, visibleToInfraredHomography;
     cv::Ptr<cv::Mat> ColoredFrame;
     // Read the matrices from the file
-    fs["infraredToVisibleHomography"] >> infraredToVisibleHomography;
+    fs["irToVisibleHomography"] >> infraredToVisibleHomography;
     fs["visibleToIRHomography"] >> visibleToInfraredHomography;
 
     // Close the file
@@ -144,6 +145,12 @@ int main()
               << infraredToVisibleHomography << std::endl;
     std::cout << "visibleToInfraredHomography:\n"
               << visibleToInfraredHomography << std::endl;
+
+    // GStreamer input video pipelines
+    // cv::VideoCapture cap(pipeline, cv::CAP_GSTREAMER);
+
+    std::string visibleGStreamerCam = " ";
+    std::string irGStreamerCamd = " ";
 
     // Open two camera streams
     cv::VideoCapture capIR(NOIR_CAMERA);
@@ -283,14 +290,14 @@ int main()
         // cv::imshow("Visible Frame 'Raw' ", visibleFrames);
         // cv::imshow("IR Frame 'Raw' ", irFrames);
 
-        //cv::imshow("Raw camera feed", rawCombinedFrames);
-        //cv::imshow("croppedIrFrames", croppedIrFrames);
-        //cv::imshow("croppedVisibleFrames", croppedVisibleFrames);
+        // cv::imshow("Raw camera feed", rawCombinedFrames);
+        // cv::imshow("croppedIrFrames", croppedIrFrames);
+        // cv::imshow("croppedVisibleFrames", croppedVisibleFrames);
 
-        //cv::imshow("visibleWarpedFrame", visibleWarpedFrame);
+        // cv::imshow("visibleWarpedFrame", visibleWarpedFrame);
         cv::imshow("Combined Visible --> IR Warped Overlay With Yen Threshold Overlay  ", visibleToIRProjectedFrame);
-        //cv::imshow("yenThresholdedFrame ", yenThresholdedFrame);
-        //cv::imshow("Heat Map Projected Onto IR", *ColoredFrame);
+        // cv::imshow("yenThresholdedFrame ", yenThresholdedFrame);
+        // cv::imshow("Heat Map Projected Onto IR", *ColoredFrame);
 
         //  Pres ESC key to exit program
         if (cv::waitKey(1) == ESC_KEY)
