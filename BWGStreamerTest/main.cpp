@@ -44,10 +44,15 @@ void captureVisibleFrames(VideoCapture &cap, Mat &frame)
             captureFrames = false;
             break;
         }
+        cv::Mat tempFrameBGR;
+        cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
+        // cv::imshow("tempFrame", tempFrameBGR);
+        // cv::waitKey(1);
 
         // Write frame directly with lock
         std::lock_guard<std::mutex> lock(visibleMutex);
-        frame = tempFrame; // Assign directly without cloning
+        // frame = tempFrame; // Assign directly without cloning
+        frame = tempFrameBGR;
     }
 }
 
@@ -66,10 +71,13 @@ void captureIRFrames(VideoCapture &cap, Mat &frame)
         }
 
         cv::flip(tempFrame, tempFrame, 1);
+        cv::Mat tempFrameBGR;
+        cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
 
         // Write frame directly with lock
         std::lock_guard<std::mutex> lock(irMutex);
-        frame = tempFrame; // Assign directly without cloning
+        // frame = tempFrame; // Assign directly without cloning
+        frame = tempFrameBGR;
     }
 }
 
@@ -78,18 +86,14 @@ int main()
     // To determine the other video/x-raw parameters you can use : gst-device-monitor-1.0
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
-    video/x-raw, format=I420, width=640, height=480,framerate=30/1 !
-    videoconvert ! 
-    video/x-raw,format=(string)BGR ! 
+    video/x-raw,format=(string)I420,width=640,height=480,framerate=30/1 ! 
     queue ! 
     appsink
 )";
 
     std::string irCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
-    video/x-raw, format=I420, width=640, height=480,framerate=30/1 !
-    videoconvert ! 
-    video/x-raw,format=(string)BGR ! 
+    video/x-raw,format=(string)I420,width=640,height=480,framerate=30/1 ! 
     queue ! 
     appsink
 )";
@@ -141,7 +145,7 @@ int main()
     std::thread captureVisibleThread(captureVisibleFrames, std::ref(capVisible), std::ref(visibleFrame));
     // std::thread captureThread(captureFramesAndSend, std::ref(cap), std::ref(writer));
 
-    Mat localVisibleFrame, localIRFrame, sideBySide;
+    Mat localVisibleFrame, localIRFrame, sideBySide, frameBGR0, frameBGR1;
 
     while (captureFrames)
     {
@@ -159,11 +163,13 @@ int main()
         }
 
         cv::hconcat(localVisibleFrame, localIRFrame, sideBySide);
+        // cv::imshow("localVisibleFrame", localVisibleFrame);
+        // cv::imshow("localIRFrame", localIRFrame);
 
-        // if (!localVisibleFrame.empty())
-        // {
-        //     writer.write(localVisibleFrame); // Write the BGR frame directly
-        // }
+        // // if (!localVisibleFrame.empty())
+        // // {
+        // //     writer.write(localVisibleFrame); // Write the BGR frame directly
+        // // }
 
         if (!sideBySide.empty())
             imshow("Visible frame | | IR frame", sideBySide);

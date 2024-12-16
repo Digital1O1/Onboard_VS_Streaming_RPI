@@ -209,6 +209,12 @@ gst-launch-1.0 -v udpsrc port=5000 ! application/x-rtp, encoding-name=H264,paylo
 
 <br> -->
 
+# Current goals with streaming project
+- [x] Figure out pipeline to send YUV420 frames over from RPI to laptop 
+  - [ ]  Record video UP to 5 mins for now on laptop
+- [ ] 'Split' the composite video into different channels on laptop
+
+
 # Debugging tools
 
 ## Printing debugging information
