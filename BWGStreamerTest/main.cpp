@@ -7,66 +7,78 @@
 
 using namespace cv;
 
-std::mutex irMutex;
-std::mutex visibleMutex;
+std::mutex irMutex, visibleMutex;
+std::atomic<bool> captureFrames(true);
 
 #define ESC_KEY 27
 #define HORIZONTAL_RESOLUTION 640
 #define VERTICAL_RESOLUTION 480
 
-void captureVisibleFrames(VideoCapture &cap, Mat *frame, const std::string &windowName)
+/*
+    Why use tempFrames
+        - Prevent partical updates
+            - Functions like cv::flip could involve alot of intermediate steps that update the Mat object
+            - Functions like
+                - Memory allocation
+                - Resizing
+                - Ect....
+            - If another thread tries to read the shared frame during the updates it could corrput or cause an incompletion of the data
+        - Reduce mutex lock times
+            - Using a temporary variable to read and process a frame allows you to only lock the mutex when ASSIGNING THE FULLY PROCESSED FRAME TO THE SHARED VARIABLE
+            - Thus minimizes the time spent holding the mutex
+            - And allows other threads to access the frame more frequently
+        - Isolating the processing logic
+            - Using tempFrame helps ensure other opeartions like flipping/resizing are INDEPENDENT of the shared frame
+            - Thus preventing unintended side effects caused by direct writes to the shared object
+*/
+void captureVisibleFrames(VideoCapture &cap, Mat &frame)
 {
-    while (true)
+    while (captureFrames)
     {
-        // auto captureVisibleFrameSTART = std::chrono::high_resolution_clock::now();
-        visibleMutex.lock();
-        cap >> *frame;
-        visibleMutex.unlock();
+        Mat tempFrame; // See commented section above for the logic behind using a temporary Mat object
+        cap >> tempFrame;
 
-        if (frame->empty())
+        if (tempFrame.empty())
         {
-            std::cerr << "Error: Couldn't read frame from camera" << std::endl;
+            std::cerr << "Error: Couldn't read frame from visible camera" << std::endl;
+            captureFrames = false;
             break;
         }
-        // cv::imshow("visibleFrames", frame);
+
+        // Write frame directly with lock
+        std::lock_guard<std::mutex> lock(visibleMutex);
+        frame = tempFrame; // Assign directly without cloning
     }
 }
-void captureIRFrames(VideoCapture &cap, Mat *frame, const std::string &windowName)
-{
-    cv::Mat flipped;
-    while (true)
-    {
-        irMutex.lock();
-        cap >> *frame;
-        cv::flip(*frame, *frame, 1);
-        irMutex.unlock();
 
-        // cv::flip(*frame, *frame, 1);
-        if (frame->empty())
+void captureIRFrames(VideoCapture &cap, Mat &frame)
+{
+    while (captureFrames)
+    {
+        Mat tempFrame;
+        cap >> tempFrame;
+
+        if (tempFrame.empty())
         {
-            std::cerr << "Error: Couldn't read frame from camera" << std::endl;
+            std::cerr << "Error: Couldn't read frame from IR camera" << std::endl;
+            captureFrames = false;
             break;
         }
-        // cv::imshow("irFrames", frame);
+
+        cv::flip(tempFrame, tempFrame, 1);
+
+        // Write frame directly with lock
+        std::lock_guard<std::mutex> lock(irMutex);
+        frame = tempFrame; // Assign directly without cloning
     }
 }
 
 int main()
 {
-
-    // std::string pipeline = R"(
-    //     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" !
-    //     video/x-raw,width=1280,height=720,framerate=30/1 !
-    //     videoconvert !
-    //     v4l2h264enc extra-controls="controls,repeat_sequence_header=1" !
-    //     video/x-h264,profile=baseline !
-    //     appsink
-    // )";
-
-    // R"()" used to create a raw string literal
+    // To determine the other video/x-raw parameters you can use : gst-device-monitor-1.0
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
-    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    video/x-bayer,width=640,height=480,framerate=30/1 ! 
     videoconvert ! 
     video/x-raw,format=(string)BGR ! 
     queue ! 
@@ -75,65 +87,99 @@ int main()
 
     std::string irCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
-    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    video/x-bayer,width=640,height=480,framerate=30/1 ! 
     videoconvert ! 
     video/x-raw,format=(string)BGR ! 
     queue ! 
     appsink
 )";
 
-    cv::VideoCapture capIR(visibleCameraPipeline, cv::CAP_GSTREAMER);
-    cv::VideoCapture visibleCap(irCameraPipeline, cv::CAP_GSTREAMER);
+    // std::string visibleCameraPipeline = R"(
+    //     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" !
+    //     video/x-bayer,format=(string)rggb10,width=640,height=480,framerate=30/1 !
+    //     queue !
+    //     appsink
+    // )";
 
-    // Create seperate thread to capture incoming frames
-    // void captureIRFrames(VideoCapture &cap, Mat *frame, const std::string &windowName)
+    // std::string sendForProcessing = R"(
+    //     appsrc ! videoconvert !
+    //     v4l2h264enc extra-controls="controls,repeat_sequence_header=1" !
+    //     h264parse ! rtph264pay !
+    //     udpsink host=172.17.140.56 port=5001
+    // )";
 
-    // This has to be done since the image acqusition is being done on seperate threads
-    Mat visibleFrames, irFrames;
-    Mat *irFramePtr = &irFrames;
-    Mat *visibleFramePtr = &visibleFrames;
-    irFrames = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
-    visibleFrames = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+    std::string sendForProcessing = R"(
+    appsrc ! videoconvert ! video/x-raw,format=BGR ! 
+    v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! 
+    h264parse ! rtph264pay ! 
+    udpsink host=172.17.140.56 port=5001
+)";
 
-    std::thread captureIRThread(captureIRFrames, std::ref(capIR), irFramePtr, "IR Camera");
-    std::thread captureVisibleThread(captureVisibleFrames, std::ref(visibleCap), visibleFramePtr, "Visible Camera");
-    // Check if the cameras are opened
-    if (!capIR.isOpened() || !visibleCap.isOpened())
+    VideoCapture capIR(irCameraPipeline, cv::CAP_GSTREAMER);
+    VideoCapture capVisible(visibleCameraPipeline, cv::CAP_GSTREAMER);
+
+    // VideoWriter writer(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), true);
+
+    VideoWriter writer(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), true);
+
+    if (!writer.isOpened())
+    {
+        std::cerr << "Error: Couldn't open video writer pipeline" << std::endl;
+        return -1;
+    }
+    if (!capIR.isOpened() || !capVisible.isOpened())
     {
         std::cerr << "Error: Cameras not accessible" << std::endl;
         return -1;
     }
-    else
-    {
-        printf("\nGSTREAMER PIPELINES OPENED \r\n");
-    }
-    while (true)
-    {
-        // Mat visibleFrames, irFrames;
-        visibleCap >> visibleFrames;
-        capIR >> irFrames;
-        // cv::flip(irFrames, irFrames, 1);
 
-        // Check if any of the frames is empty
-        if (visibleFrames.empty() || irFrames.empty())
+    Mat visibleFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+    Mat irFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+
+    std::thread captureIRThread(captureIRFrames, std::ref(capIR), std::ref(irFrame));
+    std::thread captureVisibleThread(captureVisibleFrames, std::ref(capVisible), std::ref(visibleFrame));
+    // std::thread captureThread(captureFramesAndSend, std::ref(cap), std::ref(writer));
+
+    Mat localVisibleFrame, localIRFrame, sideBySide;
+
+    while (captureFrames)
+    {
+        // Mat localVisibleFrame, localIRFrame, sideBySide;
+
+        // Safely read frames under lock via using scoping blocks (The curly braces) to limit the 'lifetime' of each std::lock_guard object since it gets destoryed when the block ends, thus releases the assocaited mutex
         {
-            std::cerr << "Error: Unable to capture frame\n";
-            break;
+            std::lock_guard<std::mutex> lockVisible(visibleMutex);
+            localVisibleFrame = visibleFrame; // Access directly without cloning
         }
 
-        cv::imshow("visibleFrames", visibleFrames);
-        cv::imshow("irFrames", irFrames);
-
-        if (cv::waitKey(1) == ESC_KEY) //  Pres ESC key to exit program
         {
-            std::cout << "Exiting...\n";
+            std::lock_guard<std::mutex> lockIR(irMutex);
+            localIRFrame = irFrame; // Access directly without cloning
+        }
+
+        cv::hconcat(localVisibleFrame, localIRFrame, sideBySide);
+
+        // if (!localVisibleFrame.empty())
+        // {
+        //     writer.write(localVisibleFrame); // Write the BGR frame directly
+        // }
+
+        if (!sideBySide.empty())
+            imshow("Visible frame | | IR frame", sideBySide);
+
+        if (cv::waitKey(1) == ESC_KEY)
+        {
+            captureFrames = false;
             break;
         }
     }
+
     captureIRThread.join();
     captureVisibleThread.join();
+
     capIR.release();
-    visibleCap.release();
+    capVisible.release();
     destroyAllWindows();
+
     return 0;
 }
