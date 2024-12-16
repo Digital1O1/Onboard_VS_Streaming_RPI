@@ -78,7 +78,7 @@ int main()
     // To determine the other video/x-raw parameters you can use : gst-device-monitor-1.0
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
-    video/x-bayer,width=640,height=480,framerate=30/1 ! 
+    video/x-raw, format=I420, width=640, height=480,framerate=30/1 !
     videoconvert ! 
     video/x-raw,format=(string)BGR ! 
     queue ! 
@@ -87,13 +87,14 @@ int main()
 
     std::string irCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
-    video/x-bayer,width=640,height=480,framerate=30/1 ! 
+    video/x-raw, format=I420, width=640, height=480,framerate=30/1 !
     videoconvert ! 
     video/x-raw,format=(string)BGR ! 
     queue ! 
     appsink
 )";
 
+    // DOESN'T WORK
     // std::string visibleCameraPipeline = R"(
     //     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" !
     //     video/x-bayer,format=(string)rggb10,width=640,height=480,framerate=30/1 !
