@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/pi/Onboard_VS_Streaming_RPI/Mock CVG Program BW"
+CMAKE_SOURCE_DIR = /home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/pi/Onboard_VS_Streaming_RPI/Mock CVG Program BW/build"
+CMAKE_BINARY_DIR = /home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -81,14 +81,14 @@ clean: CMakeFiles/MockCVGProgram.dir/clean
 CMakeFiles/MockCVGProgram.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/MockCVGProgram.dir/build.make CMakeFiles/MockCVGProgram.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/MockCVGProgram.dir/build.make CMakeFiles/MockCVGProgram.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/home/pi/Onboard_VS_Streaming_RPI/Mock CVG Program BW/build/CMakeFiles" --progress-num=1,2,3 "Built target MockCVGProgram"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/build/CMakeFiles --progress-num=1,2,3 "Built target MockCVGProgram"
 .PHONY : CMakeFiles/MockCVGProgram.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/MockCVGProgram.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/pi/Onboard_VS_Streaming_RPI/Mock CVG Program BW/build/CMakeFiles" 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/MockCVGProgram.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/pi/Onboard_VS_Streaming_RPI/Mock CVG Program BW/build/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/build/CMakeFiles 0
 .PHONY : CMakeFiles/MockCVGProgram.dir/rule
 
 # Convenience name for target.

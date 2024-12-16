@@ -2,6 +2,10 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "yen_threshold.h"
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <string>
 
 #define NOIR_CAMERA 0
 #define VISIBLE_CAMERA 1
@@ -13,6 +17,12 @@
 #define THRESHOLD_WEIGHT 0.4   // Increase to see more of the Yen Threshold Image
 #define WARPEDFRAME_WEIGHT 0.6
 #define ESC_KEY 27
+#define ESC_KEY 27
+#define HORIZONTAL_RESOLUTION 640
+#define VERTICAL_RESOLUTION 480
+
+std::mutex irMutex, visibleMutex;
+std::atomic<bool> captureFrames(true);
 
 using namespace cv;
 
@@ -108,11 +118,53 @@ cv::Mat ImgProc_YenThreshold(cv::Mat src, bool compressed, double &foundThresh)
     return thresholded;
 }
 
+void captureVisibleFrames(VideoCapture &cap, Mat &frame)
+{
+    while (captureFrames)
+    {
+        Mat tempFrame; // See commented section above for the logic behind using a temporary Mat object
+        cap >> tempFrame;
+
+        if (tempFrame.empty())
+        {
+            std::cerr << "Error: Couldn't read frame from visible camera" << std::endl;
+            captureFrames = false;
+            break;
+        }
+
+        // Write frame directly with lock
+        std::lock_guard<std::mutex> lock(visibleMutex);
+        frame = tempFrame; // Assign directly without cloning
+    }
+}
+
+void captureIRFrames(VideoCapture &cap, Mat &frame)
+{
+    while (captureFrames)
+    {
+        Mat tempFrame;
+        cap >> tempFrame;
+
+        if (tempFrame.empty())
+        {
+            std::cerr << "Error: Couldn't read frame from IR camera" << std::endl;
+            captureFrames = false;
+            break;
+        }
+
+        cv::flip(tempFrame, tempFrame, 1);
+
+        // Write frame directly with lock
+        std::lock_guard<std::mutex> lock(irMutex);
+        frame = tempFrame; // Assign directly without cloning
+    }
+}
+
 int main()
 {
     // Path to the YAML file
     std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/Archive Folder/Homography/build/homography_matrix.yaml";
-    std::cout << "Opening file: " << filename << std::endl;
+    std::cout << "\nOpening file: " << filename << std::endl;
 
     // Open the file using FileStorage
     cv::FileStorage fs(filename, cv::FileStorage::READ);
@@ -194,6 +246,14 @@ int main()
         return -1;
     }
 
+    Mat visibleFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+    Mat irFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+
+    std::thread captureIRThread(captureIRFrames, std::ref(capIR), std::ref(irFrame));
+    std::thread captureVisibleThread(captureVisibleFrames, std::ref(capVisible), std::ref(visibleFrame));
+
+    Mat localVisibleFrame, localIRFrame, sideBySide;
+
     // printf("\nPress ESC key to take image...\r\n");
     bool previewFlag = true;
     cv::Mat irFrames, visibleFrames, combinedFrames, croppedVisibleFrames, croppedIrFrames, irWarpedFrame, visibleWarpedFrame, successfulCalibrationFrameCaptured, warpedFramesSideBySide, zoomedIrFramesGray, visibleFramesGray, visibleToIRProjectedFrame, rawCombinedFrames, visibleFramesBGR, processedFrame, yenThresholdedFrame, combinedZoomedFrames;
@@ -222,9 +282,19 @@ int main()
     while (true)
     {
         // Mat visibleFrames, irFrames;
-        capVisible >> visibleFrames;
-        capIR >> irFrames;
-        cv::flip(irFrames, irFrames, 1);
+        // capVisible >> visibleFrames;
+        // capIR >> irFrames;
+        // cv::flip(irFrames, irFrames, 1);
+
+        {
+            std::lock_guard<std::mutex> lockVisible(visibleMutex);
+            visibleFrames = visibleFrame; // Access directly without cloning
+        }
+
+        {
+            std::lock_guard<std::mutex> lockIR(irMutex);
+            irFrames = irFrame; // Access directly without cloning
+        }
 
         // Check if any of the frames is empty
         if (visibleFrames.empty() || irFrames.empty())

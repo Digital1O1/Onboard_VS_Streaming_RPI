@@ -43,7 +43,7 @@ gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! \
     capsfilter caps=video/x-raw,width=640,height=480,format=NV12 ! v4l2convert ! queue ! \
     v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! \
     'video/x-h264,level=(string)4.2,profile=(string)baseline' ! h264parse ! rtph264pay ! \
-    queue ! udpsink host=$HOST_LAPTOP port=$PORT_CAM1 &
+    queue ! udpsink host="172.17.141.124" port="5000" &
 
 # Start the second camera stream
 gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! \
