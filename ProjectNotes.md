@@ -1,4 +1,4 @@
-# Ian's GStreamer stuff
+<!-- # Ian's GStreamer stuff
 ## Server
 
 `host=<ip address of viewing pi>`
@@ -25,10 +25,8 @@ gst-launch-1.0 udpsrc address=172.17.140.124  port=5000 caps=application/x-rtp !
 
 ---
 
-<br>
-<br>
-<br>
-<br>
+<br> -->
+<!-- 
 
 # My stuff
 
@@ -102,22 +100,23 @@ LOG_FILE="./rpiVisibleCamera_$(date +"%Y-%m-%d_%H:%M:%S").log"
 GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=element+pipeline)" GST_DEBUG_FILE="$LOG_FILE" gst-launch-1.0 v4l2src device=/dev/video1 ! video/x-raw,width=640,height=480,framerate=30/1,format=NV12 ! v4l2h264enc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.141.174 port=5000
 
 ```
-
+ -->
 
 
 ~~# Latency test stuff not sure if this is needed~~
 
-```bash
+<!-- ```bash
 # 'Snow' GST_DEBUG testing program
 GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=element+pipeline)" GST_DEBUG_FILE=./latency.log gst-launch-1.0 -v videotestsrc pattern=snow ! video/x-raw,width=640,height=480,framerate=30/1 ! videoconvert ! autovideosink
 ```
+
 
 ```bash
 # Currently testing
 # Update 4/25 : latency with raspivid command doesn't work, must use v4l2
 GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=element+pipeline)" GST_DEBUG_FILE=./rpiLatency.log gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.141.174 port=5000  | raspivid -n -t 0 -w 640 -h 480 -fps 25 -b 2000000 -o - -cs 1 | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=172.17.141.174 port=5000
-```
-
+``` -->
+<!-- 
 
 # Gstreamer breakdown of how things work
 
@@ -208,7 +207,7 @@ gst-launch-1.0 -v udpsrc port=5000 ! application/x-rtp, encoding-name=H264,paylo
 
 ---
 
-<br>
+<br> -->
 
 # Debugging tools
 
@@ -282,7 +281,10 @@ A comma-seperated lists of category level pairs
   - Why is this important?
     - Installing/removing plugins will change the list
 
-
+## To determine supported video formats 
+```bash
+gst-device-monitor-1.0 Video
+```
 
 
 <br>
