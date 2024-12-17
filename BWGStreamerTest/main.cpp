@@ -11,8 +11,10 @@ std::mutex irMutex, visibleMutex;
 std::atomic<bool> captureFrames(true);
 
 #define ESC_KEY 27
-#define HORIZONTAL_RESOLUTION 640
-#define VERTICAL_RESOLUTION 480
+#define RESOLUTION_WIDTH 640
+#define RESOLUTION_HEIGHT 480
+#define YUV420_WIDTH_RESOLUTION 640
+#define YUV420_HEIGHT_RESOLUTION 720
 
 /*
     Why use tempFrames
@@ -44,15 +46,15 @@ void captureVisibleFrames(VideoCapture &cap, Mat &frame)
             captureFrames = false;
             break;
         }
-        cv::Mat tempFrameBGR;
-        cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
+        // cv::Mat tempFrameBGR;
+        // cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
         // cv::imshow("tempFrame", tempFrameBGR);
         // cv::waitKey(1);
 
         // Write frame directly with lock
         std::lock_guard<std::mutex> lock(visibleMutex);
-        // frame = tempFrame; // Assign directly without cloning
-        frame = tempFrameBGR;
+        frame = tempFrame; // Assign directly without cloning
+        // frame = tempFrameBGR;
     }
 }
 
@@ -71,13 +73,13 @@ void captureIRFrames(VideoCapture &cap, Mat &frame)
         }
 
         cv::flip(tempFrame, tempFrame, 1);
-        cv::Mat tempFrameBGR;
-        cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
+        // cv::Mat tempFrameBGR;
+        // cv::cvtColor(tempFrame, tempFrameBGR, cv::COLOR_YUV2BGR_I420);
 
         // Write frame directly with lock
         std::lock_guard<std::mutex> lock(irMutex);
-        // frame = tempFrame; // Assign directly without cloning
-        frame = tempFrameBGR;
+        frame = tempFrame; // Assign directly without cloning
+        // frame = tempFrameBGR;
     }
 }
 
@@ -113,37 +115,38 @@ int main()
     //     udpsink host=172.17.140.56 port=5001
     // )";
 
+    //     std::string sendForProcessing = R"(
+    //     appsrc  ! v4l2h264enc extra-controls="controls,repeat_sequence_header=1" !
+    //     h264parse ! rtph264pay !
+    //     udpsink host=172.17.140.56 port=5001
+    // )";
+
     std::string sendForProcessing = R"(
-    appsrc ! videoconvert ! video/x-raw,format=BGR ! 
-    v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! 
-    h264parse ! rtph264pay ! 
-    udpsink host=172.17.140.56 port=5001
+appsrc ! video/x-raw,format=I420,width=640,height=480,framerate=30/1 ! 
+v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! 
+h264parse ! rtph264pay ! 
+udpsink host=172.17.140.56 port=5001
 )";
 
+    // Capture YUV420 frames
     VideoCapture capIR(irCameraPipeline, cv::CAP_GSTREAMER);
     VideoCapture capVisible(visibleCameraPipeline, cv::CAP_GSTREAMER);
 
-    // VideoWriter writer(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), true);
+    // Send YUV420 frames to linux laptop
+    VideoWriter sendToLinuxLaptopWriter(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(640, 480), true);
 
-    VideoWriter writer(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), true);
-
-    if (!writer.isOpened())
-    {
-        std::cerr << "Error: Couldn't open video writer pipeline" << std::endl;
-        return -1;
-    }
-    if (!capIR.isOpened() || !capVisible.isOpened())
+    if (!capIR.isOpened() || !capVisible.isOpened() || !sendToLinuxLaptopWriter.isOpened())
     {
         std::cerr << "Error: Cameras not accessible" << std::endl;
         return -1;
     }
 
-    Mat visibleFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
-    Mat irFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
+    Mat visibleFrame = Mat::zeros(Size(RESOLUTION_WIDTH, RESOLUTION_HEIGHT), CV_8UC3);
+    Mat irFrame = Mat::zeros(Size(RESOLUTION_WIDTH, RESOLUTION_HEIGHT), CV_8UC3);
 
     std::thread captureIRThread(captureIRFrames, std::ref(capIR), std::ref(irFrame));
     std::thread captureVisibleThread(captureVisibleFrames, std::ref(capVisible), std::ref(visibleFrame));
-    // std::thread captureThread(captureFramesAndSend, std::ref(cap), std::ref(writer));
+    // std::thread captureThread(captureFramesAndSend, std::ref(cap), std::ref(sendToLinuxLaptopWriter));
 
     Mat localVisibleFrame, localIRFrame, sideBySide, frameBGR0, frameBGR1;
 
@@ -154,26 +157,59 @@ int main()
         // Safely read frames under lock via using scoping blocks (The curly braces) to limit the 'lifetime' of each std::lock_guard object since it gets destoryed when the block ends, thus releases the assocaited mutex
         {
             std::lock_guard<std::mutex> lockVisible(visibleMutex);
-            localVisibleFrame = visibleFrame; // Access directly without cloning
+            localVisibleFrame = visibleFrame;
         }
 
         {
+            // std::lock_guard<std::mutex> lockIR(irMutex);
+            // localIRFrame = irFrame;
+
+            // Mat yuvFrame;
+            // cv::cvtColor(irFrame, yuvFrame, cv::COLOR_BGR2YUV_I420);
+
             std::lock_guard<std::mutex> lockIR(irMutex);
-            localIRFrame = irFrame; // Access directly without cloning
+            localIRFrame = irFrame;
         }
 
-        cv::hconcat(localVisibleFrame, localIRFrame, sideBySide);
-        // cv::imshow("localVisibleFrame", localVisibleFrame);
+        // cv::Size size = localIRFrame.size();
+        // int width = size.width;
+        // int height = size.height;
+        // std::cout << "Width: " << width << ", Height: " << height << " " << "Type : " << localIRFrame.type() << std::endl;
+        // std::cout << "localIRFrame Row : " << localIRFrame.rows;
+        //  cv::imshow("localVisibleFrame", localVisibleFrame);
         // cv::imshow("localIRFrame", localIRFrame);
 
-        // // if (!localVisibleFrame.empty())
-        // // {
-        // //     writer.write(localVisibleFrame); // Write the BGR frame directly
-        // // }
+        // cv::hconcat(localVisibleFrame, localIRFrame, sideBySide);
 
-        if (!sideBySide.empty())
-            imshow("Visible frame | | IR frame", sideBySide);
+        if (!localIRFrame.empty())
+        {
+            // Create an empty YUV420 frame
+            int width = localIRFrame.cols;
+            int height = localIRFrame.rows;
 
+            // YUV420 frame requires the Y, U, and V channels
+            cv::Mat yuv420_img(height + height / 2, width, CV_8UC1); // Total size for YUV420 (I420)
+                                                                     // cv::imshow("yuv420_img", yuv420_img);
+            //  Set the Y channel to the grayscale image (same intensity)
+            //  localIRFrame.copyTo(yuv420_img(cv::Rect(0, 0, width, height)));
+            yuv420_img(cv::Rect(0, 0, width, height)) = localIRFrame;
+
+            // U and V channels (subsampled)
+            // Set both U and V to 128 (neutral value)
+            cv::Mat u_channel(height / 2, width / 2, CV_8UC1, cv::Scalar(128));
+            cv::Mat v_channel(height / 2, width / 2, CV_8UC1, cv::Scalar(128));
+
+            // Assign U and V channels using the assignment operator
+            yuv420_img(cv::Rect(0, height, width / 2, height / 2)) = u_channel;
+            yuv420_img(cv::Rect(width / 2, height, width / 2, height / 2)) = v_channel;
+            cv::imshow("localIRFrame", localIRFrame);
+            // Send the converted frame
+            // sendToLinuxLaptopWriter.write(yuv_img);
+        }
+
+        // if (!sideBySide.empty())
+        //     imshow("Visible frame | | IR frame", sideBySide);
+        // cv::imshow("localIRFrame", localIRFrame);
         if (cv::waitKey(1) == ESC_KEY)
         {
             captureFrames = false;
