@@ -86,15 +86,16 @@ void captureIRFrames(VideoCapture &cap, Mat &frame)
 int main()
 {
     // To determine the other video/x-raw parameters you can use : gst-device-monitor-1.0
+    // Home camera name : /base/axi/pcie@120000/rp1/i2c@80000/imx219@10 | /base/axi/pcie@120000/rp1/i2c@88000/imx219@10
     std::string visibleCameraPipeline = R"(
-    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
+    libcamerasrc camera-name="/base/axi/pcie\@120000/rp1/i2c\@88000/imx219\@10" ! 
     video/x-raw,format=(string)I420,width=640,height=480,framerate=30/1 ! 
     queue ! 
     appsink
 )";
 
     std::string irCameraPipeline = R"(
-    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
+    libcamerasrc camera-name="/base/axi/pcie\@120000/rp1/i2c\@80000/imx219\@10" ! 
     video/x-raw,format=(string)I420,width=640,height=480,framerate=30/1 ! 
     queue ! 
     appsink
@@ -136,6 +137,8 @@ udpsink host=172.17.140.56 port=5001
     VideoWriter sendToLinuxLaptopWriter(sendForProcessing, cv::CAP_GSTREAMER, 0, 30, Size(640, 480), true);
 
     if (!capIR.isOpened() || !capVisible.isOpened() || !sendToLinuxLaptopWriter.isOpened())
+    // if (!capIR.isOpened() || !capVisible.isOpened())
+
     {
         std::cerr << "Error: Cameras not accessible" << std::endl;
         return -1;
@@ -174,37 +177,58 @@ udpsink host=172.17.140.56 port=5001
         // cv::Size size = localIRFrame.size();
         // int width = size.width;
         // int height = size.height;
-        // std::cout << "Width: " << width << ", Height: " << height << " " << "Type : " << localIRFrame.type() << std::endl;
+        // std::cout << "Width: " << width << ", Height: " << height << " " << "Type : " << localIRFrame.type() << std::endl; // localIRFrame.type() --> CV_16UC1
         // std::cout << "localIRFrame Row : " << localIRFrame.rows;
-        //  cv::imshow("localVisibleFrame", localVisibleFrame);
+        // cv::imshow("localVisibleFrame", localVisibleFrame);
         // cv::imshow("localIRFrame", localIRFrame);
 
         // cv::hconcat(localVisibleFrame, localIRFrame, sideBySide);
 
         if (!localIRFrame.empty())
         {
-            // Create an empty YUV420 frame
             int width = localIRFrame.cols;
-            int height = localIRFrame.rows;
+            int height = localIRFrame.rows; // Correctly get dimensions from localIRFrame
 
-            // YUV420 frame requires the Y, U, and V channels
-            cv::Mat yuv420_img(height + height / 2, width, CV_8UC1); // Total size for YUV420 (I420)
-                                                                     // cv::imshow("yuv420_img", yuv420_img);
-            //  Set the Y channel to the grayscale image (same intensity)
-            //  localIRFrame.copyTo(yuv420_img(cv::Rect(0, 0, width, height)));
-            yuv420_img(cv::Rect(0, 0, width, height)) = localIRFrame;
+            // Debugging: Print dimensions
+            std::cout << "Width: " << width << ", Height: " << height << " Type: " << localIRFrame.type() << std::endl;
 
-            // U and V channels (subsampled)
-            // Set both U and V to 128 (neutral value)
-            cv::Mat u_channel(height / 2, width / 2, CV_8UC1, cv::Scalar(128));
-            cv::Mat v_channel(height / 2, width / 2, CV_8UC1, cv::Scalar(128));
+            // Convert the 16-bit image to an 8-bit image
+            cv::Mat localIRFrame8bit;
+            double minVal, maxVal;
+            cv::minMaxLoc(localIRFrame, &minVal, &maxVal); // Get min and max pixel values for normalization
+            std::cout << "Min: " << minVal << ", Max: " << maxVal << std::endl;
 
-            // Assign U and V channels using the assignment operator
-            yuv420_img(cv::Rect(0, height, width / 2, height / 2)) = u_channel;
-            yuv420_img(cv::Rect(width / 2, height, width / 2, height / 2)) = v_channel;
-            cv::imshow("localIRFrame", localIRFrame);
-            // Send the converted frame
-            // sendToLinuxLaptopWriter.write(yuv_img);
+            // Normalize values to 8-bit range [0-255]
+            localIRFrame.convertTo(localIRFrame8bit, CV_8UC1, 255.0 / maxVal);
+
+            // Debugging: Check pixel values
+            cv::imshow("localIRFrame (8-bit)", localIRFrame8bit);
+
+            // Create an empty YUV420 frame
+            int yuv_height = height + height / 2;
+            cv::Mat yuv420_img(yuv_height, width, CV_8UC1, cv::Scalar(0)); // Initialize with zeros
+            std::cout << "yuv420_img type: " << yuv420_img.type() << ", size: " << yuv420_img.rows << "x" << yuv420_img.cols << std::endl;
+
+            // Copy the 8-bit grayscale image to the Y channel
+            cv::Mat y_channel = yuv420_img(cv::Rect(0, 0, width, height));
+            localIRFrame8bit.copyTo(y_channel);
+
+            // Debugging: Check Y channel size
+            std::cout << "Y channel size: " << y_channel.rows << "x" << y_channel.cols << std::endl;
+
+            // Set U and V channels (subsampled)
+            int uv_width = width / 2;
+            int uv_height = height / 2;
+            cv::Mat u_channel(uv_height, uv_width, CV_8UC1, cv::Scalar(128)); // Neutral value for U
+            cv::Mat v_channel(uv_height, uv_width, CV_8UC1, cv::Scalar(128)); // Neutral value for V
+
+            // Copy U and V channels to the correct regions
+            cv::Mat uv_region = yuv420_img(cv::Rect(0, height, width, uv_height));
+            u_channel.copyTo(uv_region(cv::Rect(0, 0, uv_width, uv_height)));        // U channel
+            v_channel.copyTo(uv_region(cv::Rect(uv_width, 0, uv_width, uv_height))); // V channel
+
+            // Optional: Send the YUV420 frame
+            sendToLinuxLaptopWriter.write(yuv420_img);
         }
 
         // if (!sideBySide.empty())
