@@ -210,9 +210,91 @@ gst-launch-1.0 -v udpsrc port=5000 ! application/x-rtp, encoding-name=H264,paylo
 <br> -->
 
 # Current goals with streaming project
+- [ ] Determine latency with both UDP and TCP/IP when using GStreamer
+
 - [x] Figure out pipeline to send YUV420 frames over from RPI to laptop 
   - [ ]  Record video UP to 5 mins for now on laptop
 - [ ] 'Split' the composite video into different channels on laptop
+
+# Feedback from manuscript
+
+## First reviewer
+
+#### Major comments
+- Section 2.1
+  -   ~~Helpful to have labeled figure that shows all components on the sensor~~ 
+  -   ~~Arrows pointing to each component would be nice~~ 
+  -   ~~Also nice to have diagram showing processing flow for data~~ 
+      -   Where data goes and which libraries/devices do what 
+- Provide figure showing setup for latency measurements in section 2.2 
+  -  Could be simple picture of the setup
+- State the required image resolution for practical use of the goggles
+  - Since we suggested to use lower resolution images to reduce the latency the reviewer request to quantify if lowering the resolution will have on the overall performance of the surgeon
+  - Redo the sorting task and toggle hte image resolution 
+- Has other wireless transmission methods been explored?
+  - Have you tired image compression?
+- Add figure comparing UDP and TCP/IP transmission speed
+- Provide 'back of the envvelope' calculations on the data rate needed for the CVG given the size of a single image from each camera and the desired frame rate
+  - Doing so will help put the results into context 
+  - Also state total number of pixels and bit dpeth for each camera in Section 2.1
+- Was any experiments ran by reducing the frame rate in addition to reducing the image size?
+
+#### Minor Comments
+
+1. **Define CWL**  
+   - Please provide a definition or explanation for CWL.
+
+2. **Clarify terminology in Section 2.3**  
+   -    In Section 2.3, the phrase "polyurethane tissue-mimicking optical properties" is unclear. Do you mean "phantom" instead of "properties"?
+
+3. **Explain hardware selection**  
+   -    Could you add an explanation of why the specific computer hardware was chosen for the experiments? What were the selection criteria—cost, availability, or something else?
+
+4. **Correct table labeling and references**  
+   -    There are two figures labeled as "Table 1." Please correct these labels and verify all references to the tables in the text for accuracy.
+
+5. **Visualize latency testing results**  
+   -    Can the latency testing results (currently presented in the third table) be shown as a bar plot for better visualization?
+
+6. **Comment on asymmetric data transfer speeds**  
+   Why are the data transfer speeds asymmetric? Specifically, why is the transfer from the laptop to the Raspberry Pi faster than the reverse?
+
+7. **Relevance of fluorescence fragment size**  
+   -    Please comment on the significance of the fluorescence fragment sizes compared to the dimensions of objects the surgeon would be resecting.
+
+8. **Specify WiFi band**  
+   -    What WiFi band are you using for the experiments—2.4 GHz or 5 GHz?
+
+9. **Resolution of sorting task images**  
+   -    What resolution were the images provided to participants in the sorting task?
+
+
+## Second reviewer
+
+### Suggested Improvements
+
+#### Edge Computing Justification  
+The lightweight nature of image overlay computations raises doubts about the need for fog computing. 
+
+Demonstrating the limitations of edge processing would strengthen the argument.
+
+#### UDP Performance Data  
+Since the sorting task relies on UDP, a comprehensive analysis of UDP performance, including its addition to Table 2, is recommended.
+
+#### Hardware Configuration Clarity  
+Using two different laptops for TCP and UDP complicates the analysis, making it unclear whether differences arise from protocol or hardware variations.
+
+#### Technical Data Presentation  
+<!-- The table labeled as "Table 1" appears to be Table 3. It shows an unexplained four-fold difference in data transfer duration between Raspberry Pi-to-computer and computer-to-Raspberry Pi communications. Additionally, the reported transfer rates are significantly lower than the wireless speeds specified in Table 1, suggesting possible implementation constraints rather than hardware limitations. These discrepancies warrant discussion.   -->
+
+The mislabeled table shows a significant, unexplained difference in data transfer speeds between directions and discrepancies with expected wireless speeds, suggesting possible implementation constraints.
+
+
+
+#### Sorting Task Analysis  
+While the sorting task provides interesting insights, it could merit a dedicated experimental investigation evaluating performance across various simulated latency conditions. The scope should extend beyond basic sorting performance to include user experience factors, similar to research on display lag discomfort (see, for example, [https://doi.org/10.3389/frvir.2020.582204](https://doi.org/10.3389/frvir.2020.582204)).  
+**CAUTION:** This email originated from outside UTSW. Please be cautious of links or attachments and validate the sender's email address before replying.  
+
 
 
 # Debugging tools
