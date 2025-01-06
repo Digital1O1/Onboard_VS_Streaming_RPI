@@ -211,9 +211,10 @@ gst-launch-1.0 -v udpsrc port=5000 ! application/x-rtp, encoding-name=H264,paylo
 
 # Current goals with streaming project
 - [ ] Determine latency with both UDP and TCP/IP when using GStreamer
+- [ ] Learn how to use TMUX in GStreamer
 
 - [x] Figure out pipeline to send YUV420 frames over from RPI to laptop 
-  - [ ]  Record video UP to 5 mins for now on laptop
+  - [x]  Record video UP to 5 mins for now on laptop (Done with Picamera2)
 - [ ] 'Split' the composite video into different channels on laptop
 
 # Feedback from manuscript
@@ -295,7 +296,7 @@ The mislabeled table shows a significant, unexplained difference in data transfe
 While the sorting task provides interesting insights, it could merit a dedicated experimental investigation evaluating performance across various simulated latency conditions. The scope should extend beyond basic sorting performance to include user experience factors, similar to research on display lag discomfort (see, for example, [https://doi.org/10.3389/frvir.2020.582204](https://doi.org/10.3389/frvir.2020.582204)).  
 **CAUTION:** This email originated from outside UTSW. Please be cautious of links or attachments and validate the sender's email address before replying.  
 
-
+<!-- 
 
 # Debugging tools
 
@@ -380,4 +381,4 @@ gst-device-monitor-1.0 Video
 ---
 
 <br>
-
+ -->

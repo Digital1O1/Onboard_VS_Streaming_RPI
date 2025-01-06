@@ -163,7 +163,7 @@ void captureIRFrames(VideoCapture &cap, Mat &frame)
 int main()
 {
     // Path to the YAML file
-    std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/Archive Folder/Homography/build/homography_matrix.yaml";
+    std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/GStreamer Folder/ApplyHomographyGStreamer/homography_matrix.yaml";
     std::cout << "\nOpening file: " << filename << std::endl;
 
     // Open the file using FileStorage
@@ -197,10 +197,6 @@ int main()
     std::cout << "visibleToInfraredHomography:\n"
               << visibleToInfraredHomography << std::endl;
 
-    // Open two camera streams
-    // cv::VideoCapture capIR(NOIR_CAMERA);
-    // cv::VideoCapture capVisible(VISIBLE_CAMERA);
-
     // R"()" used to create a raw string literal
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
@@ -220,24 +216,8 @@ int main()
     appsink
 )";
 
-    // std::string irCameraPipeline = R"(
-    //     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" !
-    //     video/x-raw,width=640,height=480,framerate=30/1 !
-    //     videoconvert !
-    //     queue !
-    //     video/x-raw,format=(string)BGR !
-    //     appsink
-    // )";
-
     cv::VideoCapture capIR(visibleCameraPipeline, cv::CAP_GSTREAMER);
     cv::VideoCapture capVisible(irCameraPipeline, cv::CAP_GSTREAMER);
-    // capIR.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('B', 'G', '1', '0'));
-    // capVisible.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('B', 'G', '1', '0'));
-
-    // capIR.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    // capIR.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
-    // capVisible.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    // capVisible.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
 
     // Check if the cameras are opened
     if (!capIR.isOpened() || !capVisible.isOpened())
@@ -261,22 +241,6 @@ int main()
     int topkvalue;
     int remapMin = 0;
 
-    // cv::Mat frameVisible, frameIR;
-    // while (true)
-    // {
-    //     if (!capVisible.read(frameVisible) || !capIR.read(frameIR))
-    //     {
-    //         std::cerr << "Failed to read frames from cameras." << std::endl;
-    //         break;
-    //     }
-
-    //     cv::imshow("Visible Camera", frameVisible);
-    //     cv::imshow("IR Camera", frameIR);
-
-    //     if (cv::waitKey(30) >= 0)
-    //         break;
-    // }
-
     // ------------------------ [ VERIFY HOMOGRAPHY VALUES AND YEN THRESHOLDING ] ------------------------ //
 
     while (true)
@@ -294,6 +258,7 @@ int main()
         {
             std::lock_guard<std::mutex> lockIR(irMutex);
             irFrames = irFrame; // Access directly without cloning
+            cv::flip(irFrames, irFrames, 0);
         }
 
         // Check if any of the frames is empty
@@ -369,7 +334,7 @@ int main()
         // cv::resize(*ColoredFrame, *ColoredFrame, visibleWarpedFrame.size());
 
         visibleWarpedFrame.convertTo(visibleWarpedFrame, (*ColoredFrame).type());
-        
+
         cv::cvtColor(visibleWarpedFrame, visibleWarpedFrame, cv::COLOR_GRAY2BGRA);
 
         cv::addWeighted(*ColoredFrame, THRESHOLD_WEIGHT, visibleWarpedFrame, WARPEDFRAME_WEIGHT, 0, visibleToIRProjectedFrame);
