@@ -16,8 +16,9 @@ gst-launch-1.0 udpsrc address=172.17.141.30 port=5002 caps=application/x-rtp ! q
 
 # Current goals for manuscript
 ### Profusion stuff
-- Inject mouse with tracer
-- Watch transfer be absorbed into mouse
+- [x] Inject mouse with tracer 
+- [x] Watch transfer be absorbed into mouse
+- [ ] Align TIFF images to overlay on one another using homography matrix
 
 
 # GStreamer install 
@@ -35,8 +36,6 @@ sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev lib
 ```bash
 
 #!/bin/bash
-
-
 # Pipeline to send frames to laptop
 pkill raspivid
 pkill gst-launch-1.0
@@ -79,7 +78,7 @@ udpsink host=172.17.141.174 port=5001 &
 #! h264parse ! rtph264pay ! udpsink host=172.17.141.30 port=5001 &
 
 
-# Command to receive the stream
+# Command to receive the stream from laptop
 
 # irCameraPipeline
 gst-launch-1.0 -v udpsrc address=172.17.140.174 port=5002 caps=application/x-rtp ! \
@@ -93,7 +92,7 @@ rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false
 
 
 ```
-## Bookworm GStreamer Pipelines
+## Bookworm GStreamer Pipelines for UDP
 ```bash
 # Test output video
 gst-launch-1.0 libcamerasrc ! video/x-raw,width=640,height=480,framerate=30/1 ! autovideosink
@@ -114,6 +113,33 @@ gst-launch-1.0 libcamerasrc ! capsfilter caps=video/x-raw,width=640,height=480,f
 # Currently testing latnecy stuff here
 
 GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency" gst-launch-1.0 libcamerasrc ! capsfilter caps=video/x-raw,width=640,height=480,format=NV12 ! v4l2convert ! queue ! v4l2h264enc extra-controls="controls,repeat_sequence_header=1" ! 'video/x-h264,level=(string)4.2,profile=(string)baseline' ! h264parse ! rtph264pay ! queue ! udpsink host=172.17.140.56 port=5001
+
+```
+
+## Bookworm GStreamer Pipelines for C++ applications
+```c++
+
+    //To determine camera name use : libcamera-hello --list
+    // To determine supported color spaces for IMX219 use : gst-inspect-1.0 videoconvert
+
+    // R"()" used to create a raw string literal
+    std::string visibleCameraPipeline = R"(
+    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
+    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    videoconvert ! 
+    video/x-raw,format=(string)BGR ! 
+    queue ! 
+    appsink
+)";
+
+    std::string irCameraPipeline = R"(
+    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
+    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    videoconvert ! 
+    video/x-raw,format=(string)BGR ! 
+    queue ! 
+    appsink
+)";
 
 ```
 

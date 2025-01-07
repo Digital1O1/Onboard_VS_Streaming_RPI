@@ -8,10 +8,33 @@
 int main()
 {
     bool previewFlag = true;
-    cv::Mat frame, frame2, gray;
+    cv::Mat irFrames, visibleFrames, gray;
 
-    // To detect cameras available : libcamera-hello --list
-    // To determine which color formats are supported : gst-inspect videoconvert
+    // To determine camera name use : libcamera-hello --list
+    // To determine supported color spaces for IMX219 use : gst-inspect-1.0 videoconvert
+
+    // Use for RGB frames
+    /*
+    std::string visibleCameraPipeline = R"(
+    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" !
+    video/x-raw,width=640,height=480,framerate=30/1 !
+    videoconvert !
+    video/x-raw,format=(string)BGR !
+    queue !
+    appsink
+)";
+
+    std::string irCameraPipeline = R"(
+    libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" !
+    video/x-raw,width=640,height=480,framerate=30/1 !
+    videoconvert !
+    video/x-raw,format=(string)BGR !
+    queue !
+    appsink
+)";
+    */
+
+    // Use for YUV420 pipelines
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
     video/x-raw,width=640,height=480,framerate=30/1 ! 
@@ -30,26 +53,38 @@ int main()
     appsink
 )";
 
-    cv::VideoCapture cap(visibleCameraPipeline, cv::CAP_GSTREAMER);
-    cv::VideoCapture cap2(irCameraPipeline, cv::CAP_GSTREAMER);
+    cv::VideoCapture irCapture(visibleCameraPipeline, cv::CAP_GSTREAMER);
+    cv::VideoCapture visibleCapture(irCameraPipeline, cv::CAP_GSTREAMER);
 
-    if (!cap.isOpened() || (!cap2.isOpened()))
+    if (!irCapture.isOpened() || (!visibleCapture.isOpened()))
     {
-        std::cerr << "Error opening " << visibleCameraPipeline << std::endl;
+        std::cerr << "Error opening GStreamer Pipelines...." << std::endl;
     }
     while (previewFlag)
     {
-        cap >> frame;
-        cap2 >> frame2;
-        if (frame.empty() || frame2.empty())
+        irCapture >> irFrames;
+        visibleCapture >> visibleFrames;
+
+        // Use to extract JUST the Y channel
+        cv::Mat yChannel_IR(irFrames.rows, irFrames.cols, CV_8UC1, irFrames.data);
+        cv::Mat yChannel_Vis(visibleFrames.rows, visibleFrames.cols, CV_8UC1, visibleFrames.data);
+
+        if (irFrames.empty() || visibleFrames.empty())
         {
-            std::cerr << "Empty frame" << std::endl;
+            std::cerr << "Empty irFrames" << std::endl;
             continue;
         }
-        cv::imshow("Camera0", frame);
-        cv::imshow("Camera1", frame2);
 
-        if (cv::waitKey(1) == 'q' || cv::waitKey(1) == 'Q')
+        cv::imshow("yChannel_IR", yChannel_IR);
+        cv::imshow("yChannel_Vis", yChannel_Vis);
+
+        // Display color
+        // cv::imshow("IRCamera", irFrames);
+        // cv::imshow("VisibleCamera", visibleFrames);
+
+        char key = cv::waitKey(1);
+
+        if (key == 'q' || key == 'Q')
         {
             previewFlag = false;
         }
