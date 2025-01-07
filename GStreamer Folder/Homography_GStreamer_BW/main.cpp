@@ -39,7 +39,7 @@ int main()
         return -1;
     }
 
-    printf("\nPress either q or Q to capture the image \r\n");
+    printf("\nClick on the active OpenCV window and press either q or Q to capture the image \r\n");
     bool previewFlag = true;
     cv::Mat irFrames, visibleFrames, combinedFrames;
     while (previewFlag)
@@ -59,9 +59,12 @@ int main()
 
         cv::imshow("Preview window", combinedFrames);
 
-        if (cv::waitKey(1) == 'q' || cv::waitKey(1) == 'Q')
+        char key = cv::waitKey(1);
+
+        if (key == 'q' || key == 'Q')
         {
             previewFlag = false;
+            printf("Exiting preview mode....\r\n");
         }
     }
     previewFlag = true;

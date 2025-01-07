@@ -197,6 +197,9 @@ int main()
     std::cout << "visibleToInfraredHomography:\n"
               << visibleToInfraredHomography << std::endl;
 
+    // To determine camera name use : libcamera-hello --list
+    // To determine supported color spaces for IMX219 use : gst-inspect-1.0 videoconvert
+
     // R"()" used to create a raw string literal
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
