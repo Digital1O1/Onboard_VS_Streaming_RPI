@@ -1,7 +1,9 @@
+# Reference link for latency : https://gstreamer.freedesktop.org/documentation/additional/design/tracing.html?gi-language=c
+
 # Pipeline testing for latency
 
-# Current testing 
-GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(element)" GST_DEBUG_FILE=./latency.log gst-launch-1.0 -vvv libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! capsfilter caps=video/x-raw,width=640,height=480,format=I420 ! queue ! openh264enc ! queue ! rtph264pay ! queue ! rtpstreampay ! queue ! tcpserversink host=172.17.140.24 port=7001
+# Use to measure individual elements in pipeline
+GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(element)" GST_DEBUG_FILE=./element-latency.log gst-launch-1.0 -vvv libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! capsfilter caps=video/x-raw,width=640,height=480,format=I420 ! queue ! openh264enc ! queue ! rtph264pay ! queue ! rtpstreampay ! queue ! tcpserversink host=172.17.140.24 port=7001
 
 
 
@@ -30,7 +32,7 @@ gst-launch-1.0 -vvv libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10"
 
 
 
-# To measure end to end latnecy 
+################## To measure end to end latnecy ########################
 # Sender
 gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" \
     ! timeoverlay \
@@ -42,13 +44,12 @@ gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" \
     ! queue \
     ! tcpserversink host=172.17.140.24 port=7001
 
+
 # Recieve 
 
-gst-launch-1.0 tcpclientsrc host=172.17.140.24 port=7001 \
-    ! application/x-rtp,media=video,encoding-name=H264,payload=96 \
-    ! rtpstreamdepay \
-    ! rtph264depay \
-    ! h264parse \
-    ! avdec_h264 \
-    ! timeoverlay silent=false \
-    ! autovideosink
+gst-launch-1.0 tcpclientsrc host=172.17.140.24 port=7001 ! \
+application/x-rtp-stream,encoding-name=H264 ! \
+rtpstreamdepay ! rtph264depay ! h264parse ! openh264dec ! \
+timeoverlay ! tee name=t ! queue ! autovideosink t. ! \
+openh264enc ! rtph264pay ! rtpstreampay ! \
+tcpserversink host=172.17.140.128 port=7002
