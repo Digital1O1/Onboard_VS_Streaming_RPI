@@ -1,3 +1,0 @@
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock CVG Program/build/CMakeFiles/rebuild_cache.dir
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock CVG Program/build/CMakeFiles/MockCVGProgram.dir
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock CVG Program/build/CMakeFiles/edit_cache.dir
