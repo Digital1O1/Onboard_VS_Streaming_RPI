@@ -27,7 +27,7 @@ gst-launch-1.0 libcamerasrc \
     ! h264parse \
     ! rtph264pay \
     ! queue \
-    ! udpsink host=172.17.140.56 port=5000 &
+    ! udpsink host=172.17.140.56 port=7001 &
 
 # The $! saves the most recent executed background pprocess 
 SENDER_PID=$!
