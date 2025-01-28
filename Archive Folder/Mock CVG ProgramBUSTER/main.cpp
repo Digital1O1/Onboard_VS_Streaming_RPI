@@ -111,7 +111,7 @@ cv::Mat ImgProc_YenThreshold(cv::Mat src, bool compressed, double &foundThresh)
 int main()
 {
     // Path to the YAML file
-    std::string filename = "/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock CVG Program/build/homography_matrix.yaml";
+    std::string filename = "/home/digital101/Onboard_VS_Streaming_RPI/GStreamer Folder/Homography_GStreamer_BW/homography_matrix.yaml";
     std::cout << "Opening file: " << filename << std::endl;
 
     // Open the file using FileStorage
