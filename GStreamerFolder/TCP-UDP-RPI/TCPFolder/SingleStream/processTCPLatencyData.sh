@@ -30,15 +30,9 @@ echo "RPIRecievedData : $RPIRecievedData"
 echo "SCP_TRANSFER_PATH : $SCP_TRANSFER_PATH"
 echo "---------------------------------------------------"
 
-
-
 # Process Data
 "$PROGRAM_TO_PROCESS_DATA_PATH" -i "$DATA_TO_BE_PROCESSED_SENDER_RPI" --csv "$RPISenderData"
-
 "$PROGRAM_TO_PROCESS_DATA_PATH" -i "$DATA_TO_BE_PROCESSED_RECIEVED_FROM_LAPTOP" --csv "$RPIRecievedData"
-
-
-
 
 
 # Send data to work laptop
