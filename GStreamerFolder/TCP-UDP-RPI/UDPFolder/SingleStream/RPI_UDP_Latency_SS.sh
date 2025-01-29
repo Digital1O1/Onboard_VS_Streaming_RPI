@@ -31,6 +31,8 @@ gst-launch-1.0 libcamerasrc \
 # SENDER_PID=$!
 
 # Start the receiver pipeline reciving the processed frames from the laptop
+
+# Original
 GST_DEBUG_COLOR_MODE=off GST_TRACERS="latency(flags=element)" GST_DEBUG=GST_TRACER:7 GST_DEBUG_FILE="/home/pi/Onboard_VS_Streaming_RPI/GStreamerFolder/TCP-UDP-RPI/UDPFolder/SingleStream/RecieveFromLaptop.log" \
 gst-launch-1.0 \
     udpsrc address=172.17.140.24 port=7002 \
@@ -44,3 +46,6 @@ gst-launch-1.0 \
     ! openh264dec \
     ! queue \
     ! autovideosink 
+
+# Testing 
+# GST_DEBUG_COLOR_MODE=off GST_TRACERS="latency(flags=element)" GST_DEBUG=GST_TRACER:7 GST_DEBUG_FILE="/home/pi/Onboard_VS_Streaming_RPI/GStreamerFolder/TCP-UDP-RPI/UDPFolder/SingleStream/RecieveFromLaptop.log" gst-launch-1.0     udpsrc address=172.17.140.24 port=7002     ! application/x-rtp,encoding-name=H264     ! queue     ! rtph264depay     ! queue     ! h264parse     ! queue     ! openh264dec     ! queue     ! autovideosink

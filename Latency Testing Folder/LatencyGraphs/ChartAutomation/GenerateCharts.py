@@ -84,7 +84,7 @@ for filename in os.listdir(directory_path):
             axs[i].bar(elements, means, color=colors[:len(elements)])
 
             # Customize the chart for each subplot
-            axs[i].set_ylabel("Mean Time (ns)")
+            axs[i].set_ylabel("Mean Time (ms)")
             axs[i].set_title(f"Mean Latency Times for : {category}")
             axs[i].set_xlabel("Individual GStreamer Elements")
             axs[i].tick_params(axis="x", rotation=45)  # Rotate labels for readability
