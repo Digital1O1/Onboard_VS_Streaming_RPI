@@ -3,11 +3,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Tuple
+# X axis names
 species = ("Adelie", "Chinstrap", "Gentoo")
 
-# Store values in dictionary
-penguin_means = {
+# Store values in dictionary and is graphed
+latency_data_mean = {
     'Bill Depth': (18.35, 18.43, 14.98),
     'Bill Length': (38.79, 48.83, 47.50),
     'Flipper Length': (189.95, 195.82, 217.19),
@@ -19,7 +19,7 @@ multiplier = 0
 
 fig, ax = plt.subplots(layout='constrained')
 
-for attribute, measurement in penguin_means.items():
+for attribute, measurement in latency_data_mean.items():
     offset = width * multiplier
     rects = ax.bar(x + offset, measurement, width, label=attribute)
     ax.bar_label(rects, padding=3)
