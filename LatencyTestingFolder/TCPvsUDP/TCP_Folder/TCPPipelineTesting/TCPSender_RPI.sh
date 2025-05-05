@@ -13,15 +13,23 @@
 pkill raspivid
 pkill gst-launch-1.0
 
+# Get CLI parameters being passed in 
+RESOLUTION_WIDTH=$1
+RESOLUTION_HEIGHT=$2
+USER_BITRATE=$3
+LOG_FILE_PATH=$4
+
+BITRATE=$((USER_BITRATE * 1000))
+
 # Configuration
-RESOLUTION_WIDTH=640
-RESOLUTION_HEIGHT=480
+# RESOLUTION_WIDTH=640
+# RESOLUTION_HEIGHT=480
 SET_FPS=30
-BITRATE=2000
+# BITRATE=2000
 VISIBLE_CAMERA=/dev/video1
 LAPTOP_PORT=7001
 LAPTOP_IP=172.17.140.252
-LOG_SAVE_PATH="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/TCP_Folder/TCPPipelineTesting/TCP_Sender_RPI.log"
+LOG_SAVE_PATH="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/TCP_Folder/TCPPipelineTesting/${LOG_FILE_PATH}"
 
 # Ensure log directory exists
 mkdir -p "$(dirname "$LOG_SAVE_PATH")"

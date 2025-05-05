@@ -1,7 +1,11 @@
 #!/bin/bash
+
+LOG_SAVE_PATH=$1
+
 LAPTOP_IP=172.17.140.56
 RPI_PORT=5003
-LOG_SAVE_PATH="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/TCP_Folder/TCPPipelineTesting/TCP_Recieve_RPI.log"
+LOG_SAVE_PATH="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/TCP_Folder/TCPPipelineTesting/${LOG_SAVE_PATH}"
+
 export DISPLAY=:0
 
 mkdir -p "$(dirname "$LOG_SAVE_PATH")"
