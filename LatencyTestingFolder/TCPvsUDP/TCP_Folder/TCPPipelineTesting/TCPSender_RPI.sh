@@ -35,10 +35,7 @@ LOG_SAVE_PATH="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/T
 mkdir -p "$(dirname "$LOG_SAVE_PATH")"
 
 # Run pipeline with logging
-GST_DEBUG_COLOR_MODE=off \
-GST_TRACERS="latency(flags=element)" \
-GST_DEBUG=GST_TRACER:7 \
-GST_DEBUG_FILE="$LOG_SAVE_PATH" \
+GST_DEBUG_COLOR_MODE=off GST_TRACERS="latency(flags=element)" GST_DEBUG=GST_TRACER:7 GST_DEBUG_FILE="$LOG_SAVE_PATH" \
 gst-launch-1.0 -v v4l2src device=${VISIBLE_CAMERA} ! \
 "video/x-raw,width=${RESOLUTION_WIDTH},height=${RESOLUTION_HEIGHT},framerate=${SET_FPS}/1" ! \
 x264enc tune=zerolatency bitrate=${BITRATE} speed-preset=ultrafast ! \
