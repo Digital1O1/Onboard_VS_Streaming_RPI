@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/Onboard_VS_Streaming_RPI/Streaming_CVG/MockCVGProgram/main.cpp
+iostream
+-
+opencv2/opencv.hpp
+-
+vector
+-
+yen_threshold.h
+/home/pi/Onboard_VS_Streaming_RPI/Streaming_CVG/MockCVGProgram/yen_threshold.h
+
+/home/pi/Onboard_VS_Streaming_RPI/Streaming_CVG/MockCVGProgram/yen_threshold.h
+opencv2/imgproc/imgproc.hpp
+/home/pi/Onboard_VS_Streaming_RPI/Streaming_CVG/MockCVGProgram/opencv2/imgproc/imgproc.hpp
+limits
+-
+iostream
+-
+

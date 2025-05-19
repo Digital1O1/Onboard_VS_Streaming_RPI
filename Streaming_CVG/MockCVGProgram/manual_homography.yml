@@ -1,0 +1,7 @@
+%YAML:1.0
+---
+manual_transformation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 1., 0., 20., 0., 1., -32., 0., 0., 1. ]

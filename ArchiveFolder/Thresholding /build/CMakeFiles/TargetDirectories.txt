@@ -1,3 +1,0 @@
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Thresholding /build/CMakeFiles/rebuild_cache.dir
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Thresholding /build/CMakeFiles/Thresholding.dir
-/home/pi/Desktop/Onboard_VS_Streaming_RPI/Thresholding /build/CMakeFiles/edit_cache.dir

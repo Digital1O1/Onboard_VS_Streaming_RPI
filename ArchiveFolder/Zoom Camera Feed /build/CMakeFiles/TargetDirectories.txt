@@ -1,3 +1,0 @@
-/home/pi/Onboard_VS_Streaming_RPI/Zoom Camera Feed /build/CMakeFiles/ZoomCameraFeed.dir
-/home/pi/Onboard_VS_Streaming_RPI/Zoom Camera Feed /build/CMakeFiles/edit_cache.dir
-/home/pi/Onboard_VS_Streaming_RPI/Zoom Camera Feed /build/CMakeFiles/rebuild_cache.dir
