@@ -163,7 +163,7 @@ void captureIRFrames(VideoCapture &cap, Mat &frame)
 int main()
 {
     // Path to the YAML file
-    std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/Archive Folder/Homography/build/homography_matrix.yaml";
+    std::string filename = "/home/pi/Onboard_VS_Streaming_RPI/ArchiveFolder/Zoom Homography/build/homography_matrix.yaml";
     std::cout << "\nOpening file: " << filename << std::endl;
 
     // Open the file using FileStorage
@@ -202,24 +202,32 @@ int main()
     // cv::VideoCapture capVisible(VISIBLE_CAMERA);
 
     // R"()" used to create a raw string literal
+    
+
+    // This pipeline works on it's own
+    //gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! \
+      video/x-raw,format=BGR,width=640,height=480 ! videoconvert ! autovideosink
+
+
     std::string visibleCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! 
-    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    video/x-raw,format=BGR,width=640,height=480,framerate=30/1 ! 
     videoconvert ! 
-    video/x-raw,format=(string)BGR ! 
-    queue ! 
     appsink
 )";
+		// This pipeline works on it's own
+		//gst-launch-1.0 libcamerasrc camera-name="/base/soc/i2c0mux/i2c@0/imx219@10" ! \
+video/x-raw,format=BGR,width=640,height=480 ! videoconvert ! autovideosink
 
     std::string irCameraPipeline = R"(
     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" ! 
-    video/x-raw,width=640,height=480,framerate=30/1 ! 
+    video/x-raw, format=BGR,width=640,height=480,framerate=30/1 ! 
     videoconvert ! 
-    video/x-raw,format=(string)BGR ! 
-    queue ! 
     appsink
 )";
 
+
+    std::cout<<"Attempting to load cameras" <<std::endl;
     // std::string irCameraPipeline = R"(
     //     libcamerasrc camera-name="/base/soc/i2c0mux/i2c@1/imx219@10" !
     //     video/x-raw,width=640,height=480,framerate=30/1 !
@@ -246,6 +254,7 @@ int main()
         return -1;
     }
 
+    std::cout <<"Cameras loaded"<<std::endl;
     Mat visibleFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
     Mat irFrame = Mat::zeros(Size(HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION), CV_8UC3);
 

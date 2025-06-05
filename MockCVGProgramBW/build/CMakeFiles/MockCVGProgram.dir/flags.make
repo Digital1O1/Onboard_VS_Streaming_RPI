@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/CVG -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/Program -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/Program/include -isystem /usr/local/include/opencv4
+CXX_INCLUDES = -I/home/pi/Desktop/Onboard_VS_Streaming_RPI/Mock -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/CVG -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/Program -I/home/pi/Onboard_VS_Streaming_RPI/MockCVGProgramBW/Program/include -isystem /usr/include/opencv4
 
 CXX_FLAGS = -std=gnu++14
 
