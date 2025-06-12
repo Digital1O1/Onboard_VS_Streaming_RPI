@@ -18,8 +18,22 @@ gst-launch-1.0 udpsrc address=172.17.141.30 port=5002 caps=application/x-rtp ! q
 ### Profusion stuff
 - [x] Inject mouse with tracer 
 - [x] Watch transfer be absorbed into mouse
-- [ ] Align TIFF images to overlay on one another using homography matrix
+- [x] Align TIFF images to overlay on one another using homography matrix
+### Stream at a higher resolution
+- [ ] Test out 720x1280
+- [ ] Attempt with 1080x1920
 
+## Please note
+- Testing out the UDP stuff is found here : `~/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/UDP_Folder` 
+
+| Comm Protocol   	| Resolution   	|  Bit Rate (Mbps)  	|
+|---	            |---	        |---                    |
+| UDP               | 640x480  	    | 2   	                |
+| UDP  	            | 720x1280  	|  7 	                |
+| UDP  	            | 1080x1920  	|  14 16 18 23 All Tested but not useable 	                |
+| TCP               | 640x480  	    | 2    	                |
+| TCP  	            | 720x1280  	| 8  	                |
+| TCP  	            | 1080x1920  	| 22  	                |
 
 # GStreamer install 
 
