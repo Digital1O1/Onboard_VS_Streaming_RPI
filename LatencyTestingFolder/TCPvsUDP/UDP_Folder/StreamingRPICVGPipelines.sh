@@ -15,18 +15,18 @@ pkill gst-launch-1.0
 # Dual UDP 720 x 1280 Bitrate Test Need to test 6 --> 10 MBps
 # 8000000 bits --> Testing | Seems like good baseline
 # 10000000 | Very useable
-
+# 12000000 | Testing 
 # Dual UDP 1920 x 1080 Need to test either 10-16 MBps or 15-25 MBps
-# Testing 14
+# Testing 14 --> Failed and can't run the next day
 
-RESOLUTION_WIDTH=1920
-RESOLUTION_HEIGHT=1280
+RESOLUTION_WIDTH=1280
+RESOLUTION_HEIGHT=720
 # BITRATE_MBPS=$3
 # LOG_FILE_PATH=$4
 
 # Convert bitrate bits --> Mbps
 # BITRATE=$((BITRATE_MBPS * 1000000))
-BITRATE=14000000
+BITRATE=10000000
 
 # Fixed settings
 SET_FPS=30/1
@@ -34,6 +34,8 @@ IR_CAMERA=0
 VISIBLE_CAMERA=1
 LAPTOP_PORT_VIS=7001
 LAPTOP_PORT_IR=7002
+RPI_PORT_VIS=5003
+RPI_PORT_IR=5004
 LAPTOP_IP=172.17.140.56
 RPI_IP=172.17.140.240
 LOG_SAVE_PATH_VIS="/home/pi/Onboard_VS_Streaming_RPI/LatencyTestingFolder/TCPvsUDP/UDP_Folder/test_rpi1.log"
@@ -68,6 +70,6 @@ gst-launch-1.0 -v udpsrc address=${RPI_IP} port=5003 caps=application/x-rtp ! \
 rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false &
 
 # visibleCameraPipeline
-gst-launch-1.0 -v udpsrc address=${RPI_IP}ort=5004 caps=application/x-rtp ! \
+gst-launch-1.0 -v udpsrc address=${RPI_IP} port=5004  caps=application/x-rtp ! \
 rtph264depay ! h264parse ! queue ! v4l2h264dec ! autovideosink sync=false
 
